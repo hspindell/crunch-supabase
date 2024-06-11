@@ -1,10 +1,8 @@
-
-// import { supabaseClient } from '../_shared/supabaseClient.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@^1.33.2'
-import { gql, GraphQLClient } from "https://deno.land/x/graphql_request/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { gql, GraphQLClient } from "https://deno.land/x/graphql_request/mod.ts"
 import { corsHeaders } from '../_shared/cors.ts'
-import moment from "npm:moment-timezone";
-import NodeGeocoder from "npm:node-geocoder";
+import moment from "npm:moment-timezone"
+import NodeGeocoder from "npm:node-geocoder"
 
 interface GraphResponse {
   upcomingSchedule: {
@@ -115,7 +113,7 @@ Deno.serve(async (req) => {
     
     return {
       starts_at: moment(startDate.toISOString()).tz(tzIdentifier, true),
-      ends_at: moment(endDate.toISOString()).tz(tzIdentifier, true),
+      estimated_ends_at: moment(endDate.toISOString()).tz(tzIdentifier, true),
       title: t.tournamentName,
       event_type: 'golf-tournament',
       external_id: t.id,

@@ -1,6 +1,5 @@
 
-// import { supabaseClient } from '../_shared/supabaseClient.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@^1.33.2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.js'
 
 interface RankingResponse {
