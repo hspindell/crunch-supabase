@@ -33,22 +33,19 @@ interface TZObject {
   timeZoneId: string;
 }
 
-const GOOGLE_API_KEY = 'AIzaSyAv0lGfzlsGpw_mixsoizajRi-oWuUYDHQ'
-const PGA_X_API_KEY = "da2-gsrx5bibzbb4njvhl7t37wqyl4"
-
 console.log(`Function "fetch-upcoming-events-pga" up and running!`)
 
 Deno.serve(async (req) => {
   const pgaEndpoint = "https://orchestrator.pgatour.com/graphql"
   const graphQLClient = new GraphQLClient(pgaEndpoint, {
     headers: {
-      "x-api-key": PGA_X_API_KEY,
+      "x-api-key": Deno.env.get('PGA_X_API_KEY'),
     },
   })
 
   const geocoderOptions = {
     provider: 'google',
-    apiKey: GOOGLE_API_KEY,
+    apiKey: Deno.env.get('GOOGLE_API_KEY') ?? '',
     formatter: null // 'gpx', 'string', ...
   }
   const geocoder = NodeGeocoder(geocoderOptions)
@@ -89,7 +86,7 @@ Deno.serve(async (req) => {
     const tzParams = new URLSearchParams({ 
       'location': `${c.latitude},${c.longitude}`,
       'timestamp': `${new Date().getTime() / 1000}`,
-      'key': GOOGLE_API_KEY
+      'key': Deno.env.get('GOOGLE_API_KEY') ?? ''
     })
     return fetch('https://maps.googleapis.com/maps/api/timezone/json?' + tzParams).then((r) => r.json());
   })

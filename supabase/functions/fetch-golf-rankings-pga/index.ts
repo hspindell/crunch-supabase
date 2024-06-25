@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
   const graphQLClient = new GraphQLClient(endpoint, {
     headers: {
-      "x-api-key": "da2-gsrx5bibzbb4njvhl7t37wqyl4",
+      "x-api-key": Deno.env.get('PGA_X_API_KEY') ?? "",
     },
   })
 

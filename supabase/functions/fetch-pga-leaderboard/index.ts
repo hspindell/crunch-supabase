@@ -44,7 +44,6 @@ enum GolferStatus {
 
 // TODO move to env or some shared constants file
 const PGA_GRAPHQL_ENDPOINT = "https://orchestrator.pgatour.com/graphql"
-const PGA_X_API_KEY = "da2-gsrx5bibzbb4njvhl7t37wqyl4"
 const INCOMPLETE_ROUND_SCORE = 8
 
 
@@ -88,7 +87,7 @@ console.log(`Function "fetch-pga-leaderboard" up and running!`)
 Deno.serve(async (req) => {
   const graphQLClient = new GraphQLClient(PGA_GRAPHQL_ENDPOINT, {
     headers: {
-      "x-api-key": PGA_X_API_KEY,
+      "x-api-key": Deno.env.get('PGA_X_API_KEY') ?? '',
     },
   })
   const { tournamentId } : { tournamentId: string } = await req.json()
