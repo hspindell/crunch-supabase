@@ -1,8 +1,7 @@
 
-// import { supabaseClient } from '../_shared/supabaseClient.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@^1.33.2'
-import { gql, GraphQLClient } from "https://deno.land/x/graphql_request/mod.ts";
-import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'supabase'
+import { gql, GraphQLClient } from 'graphql'
+import { corsHeaders } from 'shared/cors.ts'
 
 interface RankingsResponse {
   statDetails: StatDetails;

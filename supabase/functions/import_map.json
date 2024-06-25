@@ -1,0 +1,10 @@
+{
+    "imports": {
+        "shared/": "./_shared/",
+        "graphql": "https://deno.land/x/graphql_request/mod.ts",
+        "supabase": "https://esm.sh/@supabase/supabase-js@2",
+        "moment": "npm:moment-timezone",
+        "node-geocoder": "npm:node-geocoder"
+    }
+}
+

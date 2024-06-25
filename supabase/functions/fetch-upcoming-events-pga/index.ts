@@ -1,8 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { gql, GraphQLClient } from "https://deno.land/x/graphql_request/mod.ts"
-import { corsHeaders } from '../_shared/cors.ts'
-import moment from "npm:moment-timezone"
-import NodeGeocoder from "npm:node-geocoder"
+import { createClient } from 'supabase'
+import { gql, GraphQLClient } from 'graphql'
+import { corsHeaders } from 'shared/cors.ts'
+import moment from 'moment'
+import NodeGeocoder from 'node-geocoder'
 
 interface GraphResponse {
   upcomingSchedule: {

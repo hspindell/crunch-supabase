@@ -1,5 +1,5 @@
-import { gql, GraphQLClient } from "https://deno.land/x/graphql_request/mod.ts";
-import { corsHeaders } from '../_shared/cors.ts'
+import { gql, GraphQLClient } from 'graphql'
+import { corsHeaders } from 'shared/cors.ts'
 
 interface GraphResponse {
   leaderboardV3: {
