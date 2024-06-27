@@ -1,5 +1,7 @@
-import { gql, GraphQLClient } from 'graphql'
-import { corsHeaders } from 'shared/cors.ts'
+import { responseSuccess, responseError } from 'shared/cors.ts'
+import { gql } from 'graphql'
+import { pgaQuery } from 'shared/pga.ts'
+import { supabaseClient } from 'shared/supabase.ts'
 
 interface GraphResponse {
   leaderboardV3: {
@@ -42,8 +44,6 @@ enum GolferStatus {
   Complete = "COMPLETE"
 }
 
-// TODO move to env or some shared constants file
-const PGA_GRAPHQL_ENDPOINT = "https://orchestrator.pgatour.com/graphql"
 const INCOMPLETE_ROUND_SCORE = 8
 
 
@@ -63,16 +63,6 @@ function adjustedScore(scoringData: ScoringData, golferStatus: GolferStatus | st
   }
 }
 
-
-  // player is done, if cut missed then each incomplete round is treated as +8
-  // let incompleteRounds = scoringData.rounds.filter((r) => r === "-").length
-
-// // TODO how does this algorithm hold up during a live tourney?
-// function totalStrokes(rounds: Array<string>): number {
-//   const roundScores = rounds.map((score) => score === "-" ? 80 : parseInt(score))
-//   return roundScores.reduce((total, a) => total + a, 0)
-// }
-
 function processGolferStatus(scoringData: ScoringData): GolferStatus | string {
   if (scoringData.score === "-" && scoringData.playerState !== "WITHDRAWN") {
     return GolferStatus.Cut
@@ -85,38 +75,34 @@ function processGolferStatus(scoringData: ScoringData): GolferStatus | string {
 console.log(`Function "fetch-pga-leaderboard" up and running!`)
 
 Deno.serve(async (req) => {
-  const graphQLClient = new GraphQLClient(PGA_GRAPHQL_ENDPOINT, {
-    headers: {
-      "x-api-key": Deno.env.get('PGA_X_API_KEY') ?? '',
-    },
-  })
-  const { tournamentId } : { tournamentId: string } = await req.json()
-
-  const query = gql`
-    {
-      leaderboardV3(id: "` + tournamentId + `") {
-        players {
-            ... on PlayerRowV3 {
-                scoringData {
-                    total
-                    playerState
-                    score
-                }
-                id
-                leaderboardSortOrder
-            }
+  try {
+    const { tournamentId } : { tournamentId: string } = await req.json()
+  
+    const query = gql`
+      {
+        leaderboardV3(id: "` + tournamentId + `") {
+          players {
+              ... on PlayerRowV3 {
+                  scoringData {
+                      total
+                      playerState
+                      score
+                  }
+                  id
+                  leaderboardSortOrder
+              }
+          }
+          tournamentStatus
         }
-        tournamentStatus
       }
-    }
-  `;
-
-  const response: GraphResponse = await graphQLClient.request(query)
-  const tournamentState: TournamentStateResponse = { 
-    status: response.leaderboardV3.tournamentStatus, 
-    leaderboard: {}
-  };
-
+    `;
+  
+    const response: GraphResponse = await pgaQuery(query)
+    const tournamentState: TournamentStateResponse = { 
+      status: response.leaderboardV3.tournamentStatus, 
+      leaderboard: {}
+    };
+  
     response.leaderboardV3.players.forEach((p) => {
       if (Object.keys(p).length === 0) { return }
       let golferStatus = processGolferStatus(p.scoringData)
@@ -129,16 +115,18 @@ Deno.serve(async (req) => {
       }
     })
 
-  try {
-    return new Response(JSON.stringify(tournamentState), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    // opportunistically mark the event over if we notice it when somebody checks the leaderboard
+    // subsequent calls will be no-op but better than making a query to check the status first
+    if (response.leaderboardV3.tournamentStatus === "COMPLETED") {
+      const supabase = supabaseClient()
+      var { data, error } = await supabase.from('events')
+      .update({ concluded: true })
+      .eq('external_id', tournamentId)
+    }
+
+    return responseSuccess()
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    return responseError(error.message)
   }
 })
 
@@ -150,7 +138,7 @@ Deno.serve(async (req) => {
   curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/fetch-pga-leaderboard' \
     --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
     --header 'Content-Type: application/json' \
-    --data '{ "tournamentId":"R2024033" }'
+    --data '{ "tournamentId":"R2024541" }'
 
 */
 
