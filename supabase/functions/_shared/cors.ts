@@ -3,8 +3,8 @@ export const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey',
 }
 
-export const responseSuccess = (): Response => {
-  return new Response("Success", {
+export const responseSuccess = (body: string | undefined): Response => {
+  return new Response(body || "Success", {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     status: 200,
   })

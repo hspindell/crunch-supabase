@@ -10,16 +10,17 @@ interface GraphResponse {
 }
 
 interface Player {
-  id: String;
-  firstName: String;
-  lastName: String;
-  countryFlag: String;
+  id: string;
+  firstName: string;
+  lastName: string;
+  countryFlag: string;
+  owgr: string;
 }
 
 const HEADSHOT_ZOOM_LEVEL = 0.7;
 const HEADSHOT_RESOLUTION = 400;
 
-function constructAvatarURL(golferId: String): String {
+function constructAvatarURL(golferId: string): string {
   return "https://pga-tour-res.cloudinary.com/image/upload/c_thumb,g_face,w_" + HEADSHOT_RESOLUTION + ",h_" + HEADSHOT_RESOLUTION + ",z_" + HEADSHOT_ZOOM_LEVEL + "/headshots_" + golferId + ".jpg"
 }
 

@@ -124,7 +124,8 @@ Deno.serve(async (req) => {
       .eq('external_id', tournamentId)
     }
 
-    return responseSuccess()
+    
+    return responseSuccess(JSON.stringify(tournamentState))
   } catch (error) {
     return responseError(error.message)
   }
@@ -141,4 +142,3 @@ Deno.serve(async (req) => {
     --data '{ "tournamentId":"R2024541" }'
 
 */
-
