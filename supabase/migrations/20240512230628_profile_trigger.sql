@@ -1,0 +1,1 @@
+create or replace trigger create_profile_for_user_trigger after insert on auth.users for each row execute function create_profile_for_user();
