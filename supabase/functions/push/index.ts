@@ -63,10 +63,10 @@ Deno.serve(async (req) => {
       .single()
   
     const fcmToken = data!.fcm_token as string
-  
+
     const accessToken = await getAccessToken({
       clientEmail: Deno.env.get("FCM_CLIENT_EMAIL"),
-      privateKey: Deno.env.get("FCM_PRIVATE_KEY"),
+      privateKey: JSON.parse(Deno.env.get("FCM_PRIVATE_KEY")),
     })
   
     const res = await fetch(
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
   
     return responseSuccess(JSON.stringify(resData))
   } catch (error) {
-    console.log(`Failed to send push ${notification.id}: ${error.message}`)
+    console.error(`Failed to send push ${notification.id}: ${error.message}`)
     await supabase.from('notifications')
     .update({ status: 'failed' })
     .eq('id', notification.id)
