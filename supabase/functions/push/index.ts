@@ -14,7 +14,9 @@ import { supabaseClient } from 'shared/supabase.ts'
 interface Notification {
   id: string
   user_id: string
-  body: string
+  title: string | undefined
+  message: string
+  data: {}
 }
 
 interface WebhookPayload {
@@ -52,49 +54,61 @@ const supabase = supabaseClient()
 
 Deno.serve(async (req) => {
   const payload: WebhookPayload = await req.json()
-
-  const { data } = await supabase
-    .from('profiles')
-    .select('fcm_token')
-    .eq('id', payload.record.user_id)
-    .single()
-
-  const fcmToken = data!.fcm_token as string
-
-  const accessToken = await getAccessToken({
-    clientEmail: Deno.env.get("FCM_CLIENT_EMAIL"),
-    privateKey: Deno.env.get("FCM_PRIVATE_KEY"),
-  })
-
-  const res = await fetch(
-    `https://fcm.googleapis.com/v1/projects/${Deno.env.get("FCM_PROJECT_ID")}/messages:send`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        message: {
-          token: fcmToken,
-          notification: {
-            title: `Notification from Supabase`,
-            body: payload.record.body,
-          },
+  const notification = payload.record;
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('fcm_token')
+      .eq('id', notification.user_id)
+      .single()
+  
+    const fcmToken = data!.fcm_token as string
+  
+    const accessToken = await getAccessToken({
+      clientEmail: Deno.env.get("FCM_CLIENT_EMAIL"),
+      privateKey: Deno.env.get("FCM_PRIVATE_KEY"),
+    })
+  
+    const res = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${Deno.env.get("FCM_PROJECT_ID")}/messages:send`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
-      }),
+        body: JSON.stringify({
+          message: {
+            token: fcmToken,
+            notification: {
+              title: notification.title || 'Crunch Pools',
+              body: notification.message,
+            },
+            data: notification.data
+          },
+        }),
+      }
+    )
+  
+    const resData = await res.json()
+    if (res.status < 200 || 299 < res.status) {
+      throw resData
     }
-  )
 
-  const resData = await res.json()
-  if (res.status < 200 || 299 < res.status) {
-    throw resData
+    await supabase.from('notifications')
+    .update({ status: 'sent' })
+    .eq('id', notification.id)
+  
+    return responseSuccess(JSON.stringify(resData))
+  } catch (error) {
+    console.log(`Failed to send push ${notification.id}: ${error.message}`)
+    await supabase.from('notifications')
+    .update({ status: 'failed' })
+    .eq('id', notification.id)
+    return responseError(error.message)
   }
-
-  return new Response(JSON.stringify(resData), {
-    headers: { 'Content-Type': 'application/json' },
-  })
 })
+
 /* To invoke locally:
 
   1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
