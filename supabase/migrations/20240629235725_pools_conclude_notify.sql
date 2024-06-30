@@ -21,12 +21,11 @@ CREATE OR REPLACE FUNCTION "public"."notify_entrants_pool_ended"() RETURNS "trig
         entries e
     WHERE
         e.pool_id = new.id;
-  
     return new;
 end$$;
 
 CREATE OR REPLACE TRIGGER "pool_concluded" 
 AFTER UPDATE ON "public"."pools" 
 FOR EACH ROW 
-when (new.concluded) and (new.concluded is distinct from old.concluded)
+when ((new.concluded) and (new.concluded is distinct from old.concluded))
 EXECUTE FUNCTION "public"."notify_entrants_pool_ended"();
