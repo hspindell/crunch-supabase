@@ -87,5 +87,5 @@ CREATE OR REPLACE TRIGGER "notify_owner_new_circle_member_trigger" AFTER INSERT 
 CREATE OR REPLACE TRIGGER "pool_concluded" 
 AFTER UPDATE ON "public"."pools" 
 FOR EACH ROW 
-when (new.concluded) and (new.concluded is distinct from old.concluded)
+when ((new.concluded) and (new.concluded is distinct from old.concluded))
 EXECUTE FUNCTION "public"."notify_entrants_pool_ended"();
